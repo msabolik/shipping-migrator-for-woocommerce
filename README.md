@@ -174,11 +174,24 @@ wc-shipping-migrator/
 
 ## Contributing
 
-Issues and pull requests welcome. The code follows WordPress Coding Standards; if you're submitting a patch, please keep tabs for indentation and Yoda conditions to match.
+Issues and pull requests welcome. By opening a pull request you agree that your contribution is licensed under this repository's license, GPL-2.0-or-later. Please don't include code copied from other plugins or from anywhere without a GPL-compatible license; bundled third-party code is listed in [CREDITS.md](CREDITS.md).
+
+The code follows the WordPress Coding Standards (tabs for indentation, Yoda conditions). Before you push, run the same checks as the Lint workflow does on every pull request:
+
+```bash
+.github/license-check.sh   # may this be published (license, headers, third-party code)
+.github/wpcs.sh            # WordPress Coding Standards (.github/wpcs.sh fix fixes formatting)
+```
+
+A monthly Compatibility workflow compares the versions this plugin is tested with against the newest WordPress and WooCommerce and runs WordPress's Plugin Check.
+
+## Security
+
+Please report a security issue privately, not in a public issue: see [SECURITY.md](SECURITY.md).
 
 ## License
 
-GPL-2.0-or-later. See [LICENSE](LICENSE).
+GPL-2.0-or-later. See [LICENSE](LICENSE). No third-party code is bundled ([CREDITS.md](CREDITS.md)).
 
 Because this plugin calls WordPress and WooCommerce functions it's a derivative work of GPL code, so GPL is the only correct licence here — not a matter of preference.
 

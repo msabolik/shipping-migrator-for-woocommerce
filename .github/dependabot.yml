@@ -1,0 +1,13 @@
+# Monthly pull requests that move the pinned action SHAs (and their version comments) to new releases.
+# Each one goes through Lint and Claude's review like any other change.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    # Not rebased when main moves (every rebase is another CI run); the owner's merge updates the branch.
+    rebase-strategy: disabled
+    groups:
+      github-actions:
+        patterns: ["*"]

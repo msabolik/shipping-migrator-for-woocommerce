@@ -1,0 +1,49 @@
+# The owner mentions @claude in an issue or in a pull request's conversation, and Claude works on it. Only the
+# owner: this repository is public, and anyone can comment. Both events run main's copy of this file, so the job can
+# use the "claude" environment, whose token only main can read. A comment on a line of code or a review would run
+# the branch's copy, where a branch could print the token, so those do not start Claude.
+# Never mention @claude on a pull request from a fork: Claude would read a stranger's code with write access to this
+# repository. The owner reviews those himself.
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [opened]
+
+jobs:
+  claude:
+    if: |
+      (github.event_name == 'issue_comment' && github.event.comment.author_association == 'OWNER' &&
+        contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && github.event.issue.author_association == 'OWNER' &&
+        (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: claude
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: "8.3"
+          coverage: none
+      - uses: anthropics/claude-code-action@c84e279f859e2591391e95bd309286eb111c345f # v1.0.284
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # acceptEdits: Claude may edit files, but runs only the commands --allowedTools lists. Since
+          # claude-code-action 1.0.273 the default is auto mode, where a safety review can pass other commands too.
+          # Only the PHP lint, file by file: no command that can start another one (find -exec, xargs), and the
+          # Lint workflow runs the rest on the pull request.
+          claude_args: |
+            --permission-mode acceptEdits
+            --max-turns 30
+            --allowedTools "Bash(php -l *)"

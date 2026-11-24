@@ -88,7 +88,9 @@ class WCSM_Importer {
 		$this->skip_existing  = ! empty( $_POST['wcsm_skip_existing'] );
 		$this->import_general = ! empty( $_POST['wcsm_import_general'] );
 
-		$data = $this->read_uploaded_file();
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- $_FILES entries are validated in read_uploaded_file().
+		$file = isset( $_FILES['wcsm_import_file'] ) ? $_FILES['wcsm_import_file'] : null;
+		$data = $this->read_uploaded_file( $file );
 
 		if ( null === $data ) {
 			// read_uploaded_file() has already queued an explanatory notice.
@@ -101,12 +103,13 @@ class WCSM_Importer {
 	/**
 	 * Validate and decode the uploaded JSON file.
 	 *
+	 * The caller reads $_FILES only after it has verified the nonce and the
+	 * capability, and passes the entry in.
+	 *
+	 * @param array|null $file The upload's $_FILES entry, or null when there is none.
 	 * @return array|null Decoded payload, or null when the upload is unusable.
 	 */
-	private function read_uploaded_file() {
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- $_FILES entries are validated below.
-		$file = isset( $_FILES['wcsm_import_file'] ) ? $_FILES['wcsm_import_file'] : null;
-
+	private function read_uploaded_file( $file ) {
 		if ( empty( $file ) || ! isset( $file['tmp_name'] ) || '' === $file['tmp_name'] ) {
 			WCSM_Notices::add( __( 'No file uploaded.', 'wc-shipping-migrator' ), 'error' );
 			return null;
