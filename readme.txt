@@ -22,9 +22,10 @@ The plugin works only for users who can manage WooCommerce, and it stores nothin
 
 == Installation ==
 
-1. Download the zip of the latest release from https://github.com/msabolik/shipping-migrator-for-woocommerce/releases.
-2. In WordPress, go to Plugins > Add New Plugin > Upload Plugin, choose the zip and activate the plugin. WooCommerce must be active.
-3. Open WooCommerce > Shipping Migrator.
+1. In WordPress, go to Plugins > Add New Plugin, search for "Shipping Migrator for WooCommerce", then Install Now and Activate. WooCommerce must be active.
+2. Open WooCommerce > Shipping Migrator.
+
+You can also download the zip of any release from https://github.com/msabolik/shipping-migrator-for-woocommerce/releases and upload it under Plugins > Add New Plugin > Upload Plugin.
 
 == Frequently Asked Questions ==
 
