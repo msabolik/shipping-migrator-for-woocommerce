@@ -2,13 +2,13 @@
 /**
  * One-shot admin notice storage.
  *
- * @package WC_Shipping_Migrator
+ * @package Shipping_Migrator_For_WooCommerce
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class WCSM_Notices
+ * Class SMFW_Notices
  *
  * Import and export both run on `admin_init`, which fires before any output.
  * The import in particular finishes with a long log that we want to show on
@@ -20,14 +20,14 @@ defined( 'ABSPATH' ) || exit;
  * deliberately one-shot: read once, then deleted, so a refresh does not
  * redisplay a stale import log.
  */
-class WCSM_Notices {
+class SMFW_Notices {
 
 	/**
 	 * Transient key holding the pending notice.
 	 *
 	 * @var string
 	 */
-	const TRANSIENT_KEY = 'wcsm_admin_notice';
+	const TRANSIENT_KEY = 'smfw_admin_notice';
 
 	/**
 	 * How long a queued notice survives if never displayed, in seconds.

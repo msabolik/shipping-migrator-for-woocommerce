@@ -1,9 +1,9 @@
 /*
- * WC Shipping Migrator — admin screen styles.
+ * Shipping Migrator for WooCommerce — admin screen styles.
  *
  * Extracted from an inline <style> block so the markup stays readable and the
  * file can be cached by the browser. Enqueued only on the plugin's own screen
- * (see WCSM_Admin_Page::enqueue_assets), so nothing here can leak into other
+ * (see SMFW_Admin_Page::enqueue_assets), so nothing here can leak into other
  * admin pages.
  *
  * Colours are taken from the WordPress admin palette rather than invented, so
@@ -15,12 +15,12 @@
  */
 
 /* Constrain to a readable measure; full-width forms are hard to scan. */
-.wcsm-wrap {
+.smfw-wrap {
 	max-width: 800px;
 }
 
 /* Card container, mirroring core's postbox look without depending on it. */
-.wcsm-card {
+.smfw-card {
 	background: #fff;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
@@ -28,26 +28,26 @@
 	margin-bottom: 24px;
 }
 
-.wcsm-card h2 {
+.smfw-card h2 {
 	margin-top: 0;
 }
 
 /* Summary tiles showing what currently exists on this site. */
-.wcsm-stats {
+.smfw-stats {
 	display: flex;
 	gap: 16px;
 	margin-bottom: 16px;
 	flex-wrap: wrap;
 }
 
-.wcsm-stat {
+.smfw-stat {
 	background: #f0f0f1;
 	border-radius: 4px;
 	padding: 12px 20px;
 	text-align: center;
 }
 
-.wcsm-stat .num {
+.smfw-stat .num {
 	font-size: 28px;
 	font-weight: 600;
 	color: #2271b1;
@@ -55,17 +55,17 @@
 	line-height: 1.2;
 }
 
-.wcsm-stat .label {
+.smfw-stat .label {
 	font-size: 13px;
 	color: #50575e;
 }
 
 /* Stack the import checkboxes so long labels stay legible. */
-.wcsm-options {
+.smfw-options {
 	margin: 16px 0;
 }
 
-.wcsm-options label {
+.smfw-options label {
 	display: block;
 	margin-bottom: 8px;
 }
@@ -75,12 +75,12 @@
  * page usable; the log scrolls inside its own notice instead of pushing the
  * rest of the screen off-view.
  */
-.wcsm-notice-log {
+.smfw-notice-log {
 	max-height: 400px;
 	overflow-y: auto;
 }
 
-.wcsm-notes {
+.smfw-notes {
 	list-style: disc;
 	margin-left: 20px;
 }

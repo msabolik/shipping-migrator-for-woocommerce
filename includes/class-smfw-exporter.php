@@ -2,13 +2,13 @@
 /**
  * Reads the site's shipping configuration and streams it out as JSON.
  *
- * @package WC_Shipping_Migrator
+ * @package Shipping_Migrator_For_WooCommerce
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class WCSM_Exporter
+ * Class SMFW_Exporter
  *
  * Collects three separate things, because WooCommerce keeps them in three
  * different places:
@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
  * method object but the configured values live in an option keyed by instance
  * ID, so we read that option directly. See collect_zone().
  */
-class WCSM_Exporter {
+class SMFW_Exporter {
 
 	/**
 	 * General WooCommerce shipping option keys included in an export.
@@ -55,16 +55,16 @@ class WCSM_Exporter {
 	 */
 	public function maybe_handle_request() {
 		// Not an export submission at all: nothing to do.
-		if ( ! isset( $_POST['wcsm_export_nonce'] ) ) {
+		if ( ! isset( $_POST['smfw_export_nonce'] ) ) {
 			return;
 		}
 
 		// wp_unslash() first because WordPress adds slashes to all superglobals;
 		// verifying the slashed value would fail on some nonces.
-		$nonce = sanitize_text_field( wp_unslash( $_POST['wcsm_export_nonce'] ) );
+		$nonce = sanitize_text_field( wp_unslash( $_POST['smfw_export_nonce'] ) );
 
 		// Nonce proves the request came from our form (CSRF protection).
-		if ( ! wp_verify_nonce( $nonce, 'wcsm_export' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'smfw_export' ) ) {
 			return;
 		}
 
@@ -89,8 +89,8 @@ class WCSM_Exporter {
 	private function stream_export() {
 		$data = array(
 			// Format marker; the importer refuses files without it.
-			'plugin'            => WCSM_FORMAT_ID,
-			'version'           => WCSM_VERSION,
+			'plugin'            => SMFW_FORMAT_ID,
+			'version'           => SMFW_VERSION,
 			'exported_at'       => current_time( 'c' ),
 			// Recorded for the operator's benefit when juggling several files.
 			'source_site'       => home_url(),

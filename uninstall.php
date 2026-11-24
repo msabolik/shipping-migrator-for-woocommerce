@@ -10,27 +10,27 @@
  * Nothing else is removed. Deleting a migration tool must never delete the
  * configuration it migrated.
  *
- * @package WC_Shipping_Migrator
+ * @package Shipping_Migrator_For_WooCommerce
  */
 
 // WordPress defines this constant only when it is genuinely running an
 // uninstall. Without the guard, hitting this file directly would execute it.
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-delete_transient( 'wcsm_admin_notice' );
+delete_transient( 'smfw_admin_notice' );
 
 // Multisite: the transient is per-site, so clear it on each site in the network.
 if ( is_multisite() ) {
-	$wcsm_site_ids = get_sites(
+	$smfw_site_ids = get_sites(
 		array(
 			'fields' => 'ids',
 			'number' => 0,
 		)
 	);
 
-	foreach ( $wcsm_site_ids as $wcsm_site_id ) {
-		switch_to_blog( $wcsm_site_id );
-		delete_transient( 'wcsm_admin_notice' );
+	foreach ( $smfw_site_ids as $smfw_site_id ) {
+		switch_to_blog( $smfw_site_id );
+		delete_transient( 'smfw_admin_notice' );
 		restore_current_blog();
 	}
 }

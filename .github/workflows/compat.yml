@@ -57,10 +57,10 @@ jobs:
           persist-credentials: false
       - name: The plugin as a release ships it (git archive leaves out the export-ignore files of .gitattributes)
         run: |
-          mkdir -p build/wc-shipping-migrator
-          git archive HEAD | tar -x -C build/wc-shipping-migrator
+          mkdir -p build/shipping-migrator-for-woocommerce
+          git archive HEAD | tar -x -C build/shipping-migrator-for-woocommerce
       - name: WordPress Plugin Check (newest WordPress)
         uses: wordpress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
         with:
-          build-dir: build/wc-shipping-migrator
-          slug: wc-shipping-migrator
+          build-dir: build/shipping-migrator-for-woocommerce
+          slug: shipping-migrator-for-woocommerce
