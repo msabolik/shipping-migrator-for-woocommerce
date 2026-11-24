@@ -5,7 +5,22 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.1] — unreleased
+## [2.0.0] — unreleased
+
+### Changed
+- Renamed from "WC Shipping Migrator" to "Shipping Migrator for WooCommerce" for
+  the WordPress.org plugin directory, whose rules keep "WC" out of plugin names
+  and slugs. The plugin folder and main file, the text domain and the admin
+  page are now `shipping-migrator-for-woocommerce`, and the code prefix is
+  `smfw` (was `wcsm`). A site with 1.x installed deletes it and installs 2.0:
+  the plugin stores no settings of its own, so nothing is lost.
+- Export files are unchanged and move between 1.x and 2.0 in both directions.
+
+### Removed
+- The plugin no longer loads its translations itself: WordPress loads them
+  (from translate.wordpress.org) on its own.
+
+## [1.2.1] — 2026-11-24
 
 ### Added
 - Compatibility with the WooCommerce Cart and Checkout blocks is declared (the

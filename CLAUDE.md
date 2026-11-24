@@ -1,4 +1,4 @@
-# wc-shipping-migrator: rules for Claude
+# shipping-migrator-for-woocommerce: rules for Claude
 
 A **public** WordPress plugin: anyone can read this repository, its whole history, its issues and its pull requests.
 It is free software under the GNU GPL (`LICENSE`), published on GitHub (releases) and possibly on WordPress.org. It
@@ -51,10 +51,11 @@ can; the rest is your judgement, and it comes before every other rule here.
    so when you review one, and check it against rules 2 to 4 like your own code.
 6. **The stop rule.** If you find code, an asset or data that may not be published (rules 2 to 4, private data,
    secrets), **stop**: change nothing else, push nothing, and tell the owner at once, with the files and why. While
-   it is in the repository, or in its history, the repository may not be public. The owner makes it private
-   (`gh repo edit msabolik/wc-shipping-migrator --visibility private --accept-visibility-change-consequences`), it is
-   removed or replaced (and, where needed, removed from the history, which only the owner does), and only then is it
-   made public again. A new public repository starts private and is made public only after this check passes.
+   it is in the repository, or in its history, the repository may not be public. The owner makes it private:
+   `gh repo edit msabolik/shipping-migrator-for-woocommerce --visibility private --accept-visibility-change-consequences`
+   Then it is removed or replaced (and, where needed, removed from the history, which only the owner does), and only
+   then is it made public again. A new public repository starts private and is made public only after this check
+   passes.
 
 ## WordPress and WooCommerce standards
 
@@ -63,10 +64,15 @@ minimal and modern.
 
 - **Standards:** WordPress Coding Standards (PHP, JavaScript, CSS, HTML, accessibility), the Plugin Handbook and the
   WordPress.org plugin guidelines: core APIs first (Settings, REST API with a `permission_callback`, HTTP API,
-  Filesystem, transients, WP-Cron or Action Scheduler), hooks rather than overrides, one unique prefix (`wcsm`),
-  every user-facing string translatable (text domain `wc-shipping-migrator`), assets enqueued with a version and
-  only where they are used, nothing loaded from a CDN, no tracking or calls home without the site owner opting in,
-  no obfuscated or minified-only code (ship the source).
+  Filesystem, transients, WP-Cron or Action Scheduler), hooks rather than overrides, one unique prefix (`smfw`),
+  every user-facing string translatable (text domain `shipping-migrator-for-woocommerce`), assets enqueued with a
+  version and only where they are used, nothing loaded from a CDN, no tracking or calls home without the site owner
+  opting in, no obfuscated or minified-only code (ship the source).
+- **WordPress.org:** the plugin is written to be published in the plugin directory. Its name and slug never contain
+  a trademark or its abbreviation (WordPress, WP, WooCommerce, WC, Woo); "for WooCommerce" at the end of the name is
+  allowed. The slug is the plugin's folder, main file and text domain, and the repository's name. WordPress loads the
+  translations itself: no `load_plugin_textdomain()`. The Compatibility workflow's Plugin Check shows what the
+  directory's review would flag: fix its errors and warnings, or say in the pull request why one stays.
 - **WooCommerce** (when the plugin extends it): only through its CRUD classes, data stores and hooks, never its
   tables directly unless no API exists (then say why in a comment); HPOS-compatible (no `wp_posts` queries for
   orders) and declared with `FeaturesUtil::declare_compatibility()` for every feature the plugin supports;
@@ -99,8 +105,9 @@ minimal and modern.
   version constant, `readme.txt` (`Stable tag`) and adds a `CHANGELOG.md` entry (Keep a Changelog).
 - Database changes run on version change through an upgrade routine, never on every request. Uninstalling removes
   only the plugin's own data, never the data it manages for WooCommerce.
-- Releases (tag `vX.Y.Z` and a GitHub release with the plugin zip) are the owner's. `.gitattributes` keeps the
-  repository-only files (`.github/`, `docs/`, `CLAUDE.md`, `CREDITS.md` stays in) out of the release archive.
+- Releases (tag `vX.Y.Z`, a GitHub release with the plugin zip, and the WordPress.org release) are the owner's.
+  `.gitattributes` keeps the repository-only files (`.github/`, `docs/`, `CLAUDE.md`, `CREDITS.md`) out of the
+  release archive; each bundled library keeps its own license file there.
 
 ## Steps only the owner can do
 
@@ -120,4 +127,5 @@ Public, so write it for any reader:
   line).
 
 The owner's merge lines go in your reply in the chat, not in the pull request: on his PC `merge-pr.sh
-msabolik/wc-shipping-migrator <n>` from his devops folder, on his phone `merge wc-shipping-migrator <n>`.
+msabolik/shipping-migrator-for-woocommerce <n>` from his devops folder, on his phone
+`merge shipping-migrator-for-woocommerce <n>`.

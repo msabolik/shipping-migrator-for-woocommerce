@@ -1,10 +1,10 @@
-=== WC Shipping Migrator ===
+=== Shipping Migrator for WooCommerce ===
 Contributors: msabolik
 Tags: woocommerce, shipping, shipping zones, export, import
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 2.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ Export and import WooCommerce shipping zones, methods, classes and settings betw
 
 == Description ==
 
-WooCommerce has no built-in export for its shipping configuration. WC Shipping Migrator moves it from one site to another: shipping classes, zones with their locations (the "Locations not covered by your other zones" zone included), every shipping method instance with its settings, enabled state and order, and, if you opt in, the general shipping options.
+WooCommerce has no built-in export for its shipping configuration. Shipping Migrator for WooCommerce moves it from one site to another: shipping classes, zones with their locations (the "Locations not covered by your other zones" zone included), every shipping method instance with its settings, enabled state and order, and, if you opt in, the general shipping options.
 
 Flat rate costs per shipping class are stored under the class's term ID, which differs from site to site. The import maps each one through the class's slug to the class on the target site, and lists every rewritten key in its log. A cost whose class does not exist on the target is kept as it is and flagged, never dropped.
 
@@ -22,7 +22,7 @@ The plugin works only for users who can manage WooCommerce, and it stores nothin
 
 == Installation ==
 
-1. Download the zip of the latest release from https://github.com/msabolik/wc-shipping-migrator/releases.
+1. Download the zip of the latest release from https://github.com/msabolik/shipping-migrator-for-woocommerce/releases.
 2. In WordPress, go to Plugins > Add New Plugin > Upload Plugin, choose the zip and activate the plugin. WooCommerce must be active.
 3. Open WooCommerce > Shipping Migrator.
 
@@ -41,6 +41,10 @@ With "Skip existing zones" on (the default), zones whose name already exists are
 It contains your store's shipping configuration and its address. Treat it like any other configuration backup.
 
 == Changelog ==
+
+= 2.0.0 =
+* Renamed from "WC Shipping Migrator" to "Shipping Migrator for WooCommerce" for the WordPress.org plugin directory, whose rules keep "WC" out of plugin names. The plugin folder, file and text domain are now shipping-migrator-for-woocommerce. Export files still move between all versions.
+* Translations come from translate.wordpress.org.
 
 = 1.2.1 =
 * Declares compatibility with the WooCommerce Cart and Checkout blocks (the plugin does not touch them), so WooCommerce no longer lists it as possibly incompatible there.

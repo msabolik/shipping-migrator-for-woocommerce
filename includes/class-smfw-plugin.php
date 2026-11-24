@@ -2,20 +2,20 @@
 /**
  * Plugin orchestrator: owns the collaborators and wires the hooks.
  *
- * @package WC_Shipping_Migrator
+ * @package Shipping_Migrator_For_WooCommerce
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Class WCSM_Plugin
+ * Class SMFW_Plugin
  *
  * Deliberately thin. It creates the three collaborators and connects them to
  * WordPress; all behaviour lives in those classes. Keeping the wiring in one
  * small file means you can see the plugin's entire surface area — every hook
  * it registers — at a glance.
  */
-class WCSM_Plugin {
+class SMFW_Plugin {
 
 	/**
 	 * Singleton instance.
@@ -24,35 +24,35 @@ class WCSM_Plugin {
 	 * registered exactly once; registering them twice would run an import
 	 * twice against the same POST.
 	 *
-	 * @var WCSM_Plugin|null
+	 * @var SMFW_Plugin|null
 	 */
 	private static $instance = null;
 
 	/**
 	 * Export handler.
 	 *
-	 * @var WCSM_Exporter
+	 * @var SMFW_Exporter
 	 */
 	private $exporter;
 
 	/**
 	 * Import handler.
 	 *
-	 * @var WCSM_Importer
+	 * @var SMFW_Importer
 	 */
 	private $importer;
 
 	/**
 	 * Admin screen renderer.
 	 *
-	 * @var WCSM_Admin_Page
+	 * @var SMFW_Admin_Page
 	 */
 	private $admin_page;
 
 	/**
 	 * Get (and lazily create) the singleton.
 	 *
-	 * @return WCSM_Plugin
+	 * @return SMFW_Plugin
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -66,9 +66,9 @@ class WCSM_Plugin {
 	 * Private constructor: build collaborators and register hooks.
 	 */
 	private function __construct() {
-		$this->exporter   = new WCSM_Exporter();
-		$this->importer   = new WCSM_Importer();
-		$this->admin_page = new WCSM_Admin_Page();
+		$this->exporter   = new SMFW_Exporter();
+		$this->importer   = new SMFW_Importer();
+		$this->admin_page = new SMFW_Admin_Page();
 
 		$this->register_hooks();
 	}
@@ -93,7 +93,7 @@ class WCSM_Plugin {
 
 		// "Settings" shortcut on the Plugins screen.
 		add_filter(
-			'plugin_action_links_' . plugin_basename( WCSM_PLUGIN_FILE ),
+			'plugin_action_links_' . plugin_basename( SMFW_PLUGIN_FILE ),
 			array( $this, 'add_action_links' )
 		);
 	}
@@ -107,8 +107,8 @@ class WCSM_Plugin {
 	public function add_action_links( $links ) {
 		$settings_link = sprintf(
 			'<a href="%s">%s</a>',
-			esc_url( admin_url( 'admin.php?page=' . WCSM_PAGE_SLUG ) ),
-			esc_html__( 'Open Migrator', 'wc-shipping-migrator' )
+			esc_url( admin_url( 'admin.php?page=' . SMFW_PAGE_SLUG ) ),
+			esc_html__( 'Open Migrator', 'shipping-migrator-for-woocommerce' )
 		);
 
 		array_unshift( $links, $settings_link );
@@ -130,6 +130,6 @@ class WCSM_Plugin {
 	 * @return void
 	 */
 	public function __wakeup() {
-		throw new Exception( 'WCSM_Plugin cannot be unserialized.' );
+		throw new Exception( 'SMFW_Plugin cannot be unserialized.' );
 	}
 }

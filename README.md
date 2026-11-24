@@ -1,4 +1,4 @@
-# WC Shipping Migrator
+# Shipping Migrator for WooCommerce
 
 Move WooCommerce shipping zones, methods, classes and their settings from one site to another — without rebuilding them by hand, and without the per-class costs silently pointing at the wrong classes.
 
@@ -74,7 +74,7 @@ Keys that can't be resolved are **left untouched and flagged** rather than dropp
 
 ## Installation
 
-1. Download the latest release `.zip` from [Releases](https://github.com/msabolik/wc-shipping-migrator/releases)
+1. Download the latest release `.zip` from [Releases](https://github.com/msabolik/shipping-migrator-for-woocommerce/releases) (or, once it is listed, install it from the WordPress.org plugin directory)
 2. **Plugins → Add New → Upload Plugin**
 3. Activate
 4. **WooCommerce → Shipping Migrator**
@@ -83,8 +83,12 @@ Or clone straight into your plugins directory:
 
 ```bash
 cd wp-content/plugins
-git clone https://github.com/msabolik/wc-shipping-migrator.git
+git clone https://github.com/msabolik/shipping-migrator-for-woocommerce.git
 ```
+
+### Upgrading from 1.x
+
+Until 1.2 the plugin was called **WC Shipping Migrator** (folder `wc-shipping-migrator`). WordPress.org keeps "WC" out of plugin names, so 2.0 is **Shipping Migrator for WooCommerce** in its own folder. WordPress sees it as a new plugin: deactivate and delete the old one, then install 2.0. The plugin keeps no settings of its own, so nothing is lost, and export files move between 1.x and 2.0 in both directions.
 
 ## Usage
 
@@ -125,7 +129,7 @@ Because named zones are skipped whole, editing a rate on the source and re-impor
 
 ## How the remapping works
 
-The interesting code is `WCSM_Importer::remap_class_costs()`.
+The interesting code is `SMFW_Importer::remap_class_costs()`.
 
 Import runs in a fixed order, and the order is load-bearing:
 
@@ -152,15 +156,15 @@ Zone 0 is special-cased throughout. `WC_Shipping_Zones::get_zones()` omits it be
 ## Project structure
 
 ```
-wc-shipping-migrator/
-├── wc-shipping-migrator.php        Bootstrap: header, constants, guards, boot
+shipping-migrator-for-woocommerce/
+├── shipping-migrator-for-woocommerce.php   Bootstrap: header, constants, guards, boot
 ├── uninstall.php                   Removes the plugin's transient on deletion
 ├── includes/
-│   ├── class-wcsm-plugin.php       Wires hooks, owns the collaborators
-│   ├── class-wcsm-exporter.php     Reads config, streams the JSON download
-│   ├── class-wcsm-importer.php     Parses JSON, writes config, remaps IDs
-│   ├── class-wcsm-admin-page.php   Renders the settings screen
-│   └── class-wcsm-notices.php      One-shot admin notice storage
+│   ├── class-smfw-plugin.php       Wires hooks, owns the collaborators
+│   ├── class-smfw-exporter.php     Reads config, streams the JSON download
+│   ├── class-smfw-importer.php     Parses JSON, writes config, remaps IDs
+│   ├── class-smfw-admin-page.php   Renders the settings screen
+│   └── class-smfw-notices.php      One-shot admin notice storage
 ├── assets/css/admin.css            Admin screen styles
 └── languages/                      Translation template
 ```
