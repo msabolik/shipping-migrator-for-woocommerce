@@ -3,7 +3,7 @@
  * Plugin Name:          WC Shipping Migrator
  * Plugin URI:           https://github.com/msabolik/wc-shipping-migrator
  * Description:          Export and import WooCommerce shipping zones, methods, classes and settings between sites. Remaps shipping class cost keys so per-class rates survive the transfer.
- * Version:              1.2.0
+ * Version:              1.2.1
  * Requires at least:    6.0
  * Requires PHP:         7.4
  * Author:               Marko Sabolić
@@ -14,7 +14,7 @@
  * Domain Path:          /languages
  * Requires Plugins:     woocommerce
  * WC requires at least: 7.0
- * WC tested up to:      9.4
+ * WC tested up to:      11.3
  *
  * @package WC_Shipping_Migrator
  *
@@ -79,7 +79,7 @@ defined( 'ABSPATH' ) || exit;
  * Used for cache busting the admin stylesheet and stamped into export files
  * so an importer can tell which version produced the data.
  */
-define( 'WCSM_VERSION', '1.2.0' );
+define( 'WCSM_VERSION', '1.2.1' );
 
 /** Absolute path to the main plugin file, for hooks that need it. */
 define( 'WCSM_PLUGIN_FILE', __FILE__ );
@@ -121,25 +121,25 @@ function wcsm_load_textdomain() {
 add_action( 'init', 'wcsm_load_textdomain' );
 
 /**
- * Declare compatibility with WooCommerce High-Performance Order Storage.
+ * Declare compatibility with WooCommerce High-Performance Order Storage and
+ * with the Cart and Checkout blocks.
  *
- * This plugin never touches orders, so it is compatible by definition — but
- * WooCommerce lists any plugin that has not explicitly declared support as
- * "incompatible" under Settings → Advanced → Features. Declaring it keeps the
- * store's compatibility screen clean.
+ * This plugin never touches orders, the cart or the checkout, so it is
+ * compatible with both by definition — but WooCommerce lists any plugin that
+ * has not explicitly declared support as "incompatible" (under Settings →
+ * Advanced → Features, and in the editor of the Cart and Checkout pages).
+ * Declaring it keeps those screens clean.
  *
  * @return void
  */
-function wcsm_declare_hpos_compatibility() {
+function wcsm_declare_woocommerce_compatibility() {
 	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
-		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility(
-			'custom_order_tables',
-			WCSM_PLUGIN_FILE,
-			true
-		);
+		foreach ( array( 'custom_order_tables', 'cart_checkout_blocks' ) as $feature ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( $feature, WCSM_PLUGIN_FILE, true );
+		}
 	}
 }
-add_action( 'before_woocommerce_init', 'wcsm_declare_hpos_compatibility' );
+add_action( 'before_woocommerce_init', 'wcsm_declare_woocommerce_compatibility' );
 
 /**
  * Boot the plugin once all plugins are loaded.

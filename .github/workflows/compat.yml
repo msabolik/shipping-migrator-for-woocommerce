@@ -1,0 +1,66 @@
+# Monthly (and on demand): does the plugin keep up with WordPress, WooCommerce and their standards?
+#   versions:     .github/compat-check.sh compares the declared "Tested up to" / "WC tested up to" and the pinned
+#                 WordPress Coding Standards with the newest releases, and opens or updates the issue
+#                 "Compatibility check" when something is behind. It changes no code: a Claude session works the
+#                 issue (CLAUDE.md, "Kept current").
+#   plugin-check: WordPress's own Plugin Check (the checks WordPress.org runs on every plugin: security, guidelines,
+#                 headers, i18n) against the newest WordPress. A failure fails this run, and GitHub emails the owner.
+name: Compatibility
+
+on:
+  schedule:
+    - cron: "23 6 3 * *" # the 3rd of every month, 06:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compatibility
+  cancel-in-progress: false
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Compare with the newest WordPress, WooCommerce and WordPress Coding Standards
+        id: compare
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash .github/compat-check.sh > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Open or update the issue "Compatibility check"
+        if: steps.compare.outputs.behind == 'yes'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search 'in:title "Compatibility check"' \
+            --json number,title --jq '[.[] | select(.title == "Compatibility check")][0].number // empty')"
+          if [ -n "$n" ]; then gh issue comment "$n" --repo "$GITHUB_REPOSITORY" --body-file report.md
+          else gh issue create --repo "$GITHUB_REPOSITORY" --title "Compatibility check" --body-file report.md
+          fi
+
+  plugin-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: The plugin as a release ships it (git archive leaves out the export-ignore files of .gitattributes)
+        run: |
+          mkdir -p build/wc-shipping-migrator
+          git archive HEAD | tar -x -C build/wc-shipping-migrator
+      - name: WordPress Plugin Check (newest WordPress)
+        uses: wordpress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
+        with:
+          build-dir: build/wc-shipping-migrator
+          slug: wc-shipping-migrator

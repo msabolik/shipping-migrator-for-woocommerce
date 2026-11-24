@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later license.
 msgid ""
 msgstr ""
-"Project-Id-Version: WC Shipping Migrator 1.2.0\n"
+"Project-Id-Version: WC Shipping Migrator 1.2.1\n"
 "Report-Msgid-Bugs-To: https://github.com/msabolik/wc-shipping-migrator/issues\n"
 "POT-Creation-Date: 2026-08-26 13:11+0000\n"
 "MIME-Version: 1.0\n"

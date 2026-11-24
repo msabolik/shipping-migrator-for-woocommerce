@@ -21,15 +21,15 @@ delete_transient( 'wcsm_admin_notice' );
 
 // Multisite: the transient is per-site, so clear it on each site in the network.
 if ( is_multisite() ) {
-	$site_ids = get_sites(
+	$wcsm_site_ids = get_sites(
 		array(
 			'fields' => 'ids',
 			'number' => 0,
 		)
 	);
 
-	foreach ( $site_ids as $site_id ) {
-		switch_to_blog( $site_id );
+	foreach ( $wcsm_site_ids as $wcsm_site_id ) {
+		switch_to_blog( $wcsm_site_id );
 		delete_transient( 'wcsm_admin_notice' );
 		restore_current_blog();
 	}

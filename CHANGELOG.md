@@ -5,6 +5,20 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] — unreleased
+
+### Added
+- Compatibility with the WooCommerce Cart and Checkout blocks is declared (the
+  plugin does not touch them), so WooCommerce no longer lists it as possibly
+  incompatible there.
+- `readme.txt` in the WordPress plugin format, `SECURITY.md` (how to report a
+  vulnerability privately) and `CREDITS.md` (no third-party code is bundled).
+
+### Changed
+- Tested with WordPress 7.1 and WooCommerce 11.3 (`WC tested up to: 11.3`).
+- The import reads the uploaded file's `$_FILES` entry right after its nonce and
+  capability checks and passes it on, instead of reading it in a helper.
+
 ## [1.2.0] — 2026-08-26
 
 First public release.

@@ -1,0 +1,53 @@
+# Every pull request: may it be published (.github/license-check.sh), PHP syntax on the oldest PHP the plugin
+# supports (its "Requires PHP") and on the newest, and the WordPress Coding Standards. Self-contained: a public
+# repository cannot use a private repository's workflows or actions. Secrets are kept out by GitHub's push
+# protection (Settings > Code security), which blocks a push that contains one.
+name: Lint
+
+on:
+  pull_request:
+    # Files no workflow checks or ships: the rules for Claude, the handoff, Claude's own workflows, Dependabot's
+    # settings. A pull request that changes only these starts nothing.
+    paths-ignore:
+      - CLAUDE.md
+      - docs/HANDOFF.md
+      - docs/DECISIONS.md
+      - .github/workflows/claude.yml
+      - .github/workflows/claude-review.yml
+      - .github/dependabot.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Licensing (LICENSE, the plugin header, third-party code in CREDITS.md)
+        run: bash .github/license-check.sh
+      - name: The oldest PHP the plugin supports
+        id: php
+        run: |
+          main="$(grep -l '^[[:space:]*]*Plugin Name:' ./*.php | head -1)"
+          min="$(sed -n 's/^[[:space:]*]*Requires PHP:[[:space:]]*\([0-9.]*\).*/\1/p' "$main" | head -1)"
+          [ -n "$min" ] || { echo "::error file=${main#./}::no Requires PHP: line in the plugin header"; exit 1; }
+          echo "min=$min" >> "$GITHUB_OUTPUT"
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ steps.php.outputs.min }}
+          coverage: none
+      - name: PHP syntax (oldest supported)
+        run: find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -r -n1 -P4 php -l -n
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: latest
+          coverage: none
+      - name: PHP syntax (newest)
+        run: find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -r -n1 -P4 php -l -n
+      - name: WordPress Coding Standards (new findings fail; old ones are in .github/phpcs-baseline.json)
+        run: bash .github/wpcs.sh
