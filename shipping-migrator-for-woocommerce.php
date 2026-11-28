@@ -3,7 +3,7 @@
  * Plugin Name:          Shipping Migrator for WooCommerce
  * Plugin URI:           https://github.com/msabolik/shipping-migrator-for-woocommerce
  * Description:          Export and import WooCommerce shipping zones, methods, classes and settings between sites. Remaps shipping class cost keys so per-class rates survive the transfer.
- * Version:              2.0.0
+ * Version:              2.0.1
  * Requires at least:    6.0
  * Requires PHP:         7.4
  * Author:               Marko Sabolić
@@ -64,6 +64,7 @@
  * includes/class-smfw-plugin.php       Wires hooks; owns the admin menu entry.
  * includes/class-smfw-exporter.php     Reads config, streams the JSON download.
  * includes/class-smfw-importer.php     Parses JSON, writes config, remaps IDs.
+ * includes/class-smfw-import-sanitizer.php  Sanitises and validates the imported data.
  * includes/class-smfw-admin-page.php   Renders the settings screen markup.
  * includes/class-smfw-notices.php      Stores/reads the one-shot admin notice.
  * uninstall.php                        Removes the transient on deletion.
@@ -79,7 +80,7 @@ defined( 'ABSPATH' ) || exit;
  * Used for cache busting the admin stylesheet and stamped into export files
  * so an importer can tell which version produced the data.
  */
-define( 'SMFW_VERSION', '2.0.0' );
+define( 'SMFW_VERSION', '2.0.1' );
 
 /** Absolute path to the main plugin file, for hooks that need it. */
 define( 'SMFW_PLUGIN_FILE', __FILE__ );
@@ -145,6 +146,7 @@ function smfw_bootstrap() {
 
 	require_once SMFW_PLUGIN_DIR . 'includes/class-smfw-notices.php';
 	require_once SMFW_PLUGIN_DIR . 'includes/class-smfw-exporter.php';
+	require_once SMFW_PLUGIN_DIR . 'includes/class-smfw-import-sanitizer.php';
 	require_once SMFW_PLUGIN_DIR . 'includes/class-smfw-importer.php';
 	require_once SMFW_PLUGIN_DIR . 'includes/class-smfw-admin-page.php';
 	require_once SMFW_PLUGIN_DIR . 'includes/class-smfw-plugin.php';

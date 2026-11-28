@@ -87,9 +87,20 @@ class SMFW_Importer {
 		$this->dry_run        = ! empty( $_POST['smfw_dry_run'] );
 		$this->skip_existing  = ! empty( $_POST['smfw_skip_existing'] );
 		$this->import_general = ! empty( $_POST['smfw_import_general'] );
+		$this->log            = array();
 
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- $_FILES entries are validated in read_uploaded_file().
-		$file = isset( $_FILES['smfw_import_file'] ) ? $_FILES['smfw_import_file'] : null;
+		// Only the two fields this import uses are read, each as its type.
+		$file = null;
+
+		if ( isset( $_FILES['smfw_import_file']['tmp_name'], $_FILES['smfw_import_file']['error'] ) && is_string( $_FILES['smfw_import_file']['tmp_name'] ) ) {
+			$file = array(
+				// A path PHP chose, checked with is_uploaded_file() before it is
+				// read; text sanitising could only alter a valid path.
+				'tmp_name' => $_FILES['smfw_import_file']['tmp_name'], // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated by is_uploaded_file() in read_uploaded_file().
+				'error'    => absint( $_FILES['smfw_import_file']['error'] ),
+			);
+		}
+
 		$data = $this->read_uploaded_file( $file );
 
 		if ( null === $data ) {
@@ -101,13 +112,13 @@ class SMFW_Importer {
 	}
 
 	/**
-	 * Validate and decode the uploaded JSON file.
+	 * Validate, decode and sanitise the uploaded JSON file.
 	 *
 	 * The caller reads $_FILES only after it has verified the nonce and the
 	 * capability, and passes the entry in.
 	 *
-	 * @param array|null $file The upload's $_FILES entry, or null when there is none.
-	 * @return array|null Decoded payload, or null when the upload is unusable.
+	 * @param array|null $file The upload's `tmp_name` and `error`, or null when there is none.
+	 * @return array|null Sanitised payload, or null when the upload is unusable.
 	 */
 	private function read_uploaded_file( $file ) {
 		if ( empty( $file ) || ! isset( $file['tmp_name'] ) || '' === $file['tmp_name'] ) {
@@ -158,7 +169,8 @@ class SMFW_Importer {
 			return null;
 		}
 
-		return $data;
+		// Every field is sanitised here, before anything else reads the file.
+		return SMFW_Import_Sanitizer::sanitize_payload( $data, $this->log );
 	}
 
 	/**
@@ -172,8 +184,6 @@ class SMFW_Importer {
 	 * @return void
 	 */
 	private function run( array $data ) {
-		$this->log = array();
-
 		$this->import_shipping_classes( $data );
 		$this->refresh_class_slug_map();
 		$this->import_shipping_zones( $data );
@@ -236,7 +246,7 @@ class SMFW_Importer {
 				'product_shipping_class',
 				array(
 					'slug'        => $class['slug'],
-					'description' => isset( $class['description'] ) ? $class['description'] : '',
+					'description' => $class['description'],
 				)
 			);
 
@@ -267,6 +277,11 @@ class SMFW_Importer {
 	 */
 	private function refresh_class_slug_map() {
 		$this->class_slug_to_id = array();
+
+		// WooCommerce caches the class list for the request, and the flat rate
+		// method builds its class_cost_<id> fields from it. Classes created a
+		// moment ago must be in it before methods are validated.
+		WC()->shipping()->shipping_classes = array();
 
 		$terms = get_terms(
 			array(
@@ -300,9 +315,8 @@ class SMFW_Importer {
 		}
 
 		foreach ( $data['shipping_zones'] as $zone_data ) {
-			$is_zone_zero = ! empty( $zone_data['is_zone_zero'] );
-			$locations    = isset( $zone_data['locations'] ) ? $zone_data['locations'] : array();
-			$methods      = isset( $zone_data['methods'] ) ? $zone_data['methods'] : array();
+			$is_zone_zero = $zone_data['is_zone_zero'];
+			$methods      = $zone_data['methods'];
 
 			if ( $is_zone_zero ) {
 				// Zone 0 cannot be created or duplicated — it is always there.
@@ -329,6 +343,8 @@ class SMFW_Importer {
 					}
 				}
 
+				$locations = $this->filter_locations( $zone_data['name'], $zone_data['locations'] );
+
 				if ( $this->dry_run ) {
 					$this->log[] = sprintf(
 						/* translators: 1: zone name, 2: location count, 3: method count. */
@@ -342,7 +358,7 @@ class SMFW_Importer {
 
 				$zone = new WC_Shipping_Zone();
 				$zone->set_zone_name( $zone_data['name'] );
-				$zone->set_zone_order( isset( $zone_data['order'] ) ? $zone_data['order'] : 0 );
+				$zone->set_zone_order( $zone_data['order'] );
 
 				// First save assigns the zone an ID, which add_location() needs.
 				$zone->save();
@@ -420,8 +436,18 @@ class SMFW_Importer {
 		}
 
 		foreach ( $methods as $method_data ) {
-			// Checked before the dry-run branch so the preview reports exactly
-			// what a real run would do.
+			// These checks come before the dry-run branch so the preview
+			// reports exactly what a real run would do.
+			if ( ! SMFW_Import_Sanitizer::is_known_method( $method_data['method_id'] ) ) {
+				$this->log[] = sprintf(
+					/* translators: 1: method title, 2: method ID. */
+					esc_html__( '  ⏭ Method "%1$s" (%2$s) is not available on this site — skipped.', 'shipping-migrator-for-woocommerce' ),
+					esc_html( $method_data['title'] ),
+					esc_html( $method_data['method_id'] )
+				);
+				continue;
+			}
+
 			if ( $guard_duplicates && in_array( $method_data['method_id'], $existing_method_ids, true ) ) {
 				$this->log[] = sprintf(
 					/* translators: 1: method title, 2: method ID. */
@@ -455,25 +481,27 @@ class SMFW_Importer {
 				continue;
 			}
 
-			if ( ! empty( $method_data['settings'] ) && is_array( $method_data['settings'] ) ) {
+			$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
+
+			if ( ! empty( $method_data['settings'] ) && $method instanceof WC_Shipping_Method ) {
 				$remap_log = array();
 
 				// The heart of the plugin: rewrite class_cost_XX keys so they
 				// reference this site's term IDs rather than the source site's.
 				$settings = $this->remap_class_costs(
 					$method_data['settings'],
-					isset( $data['shipping_classes'] ) ? $data['shipping_classes'] : array(),
+					$data['shipping_classes'],
 					$remap_log
 				);
+
+				// Then check every value with the method's own field validators.
+				$settings = SMFW_Import_Sanitizer::validate_method_settings( $method, $settings, $remap_log );
 
 				foreach ( $remap_log as $entry ) {
 					$this->log[] = '      ↔ ' . $entry;
 				}
 
-				update_option(
-					'woocommerce_' . $method_data['method_id'] . '_' . $instance_id . '_settings',
-					$settings
-				);
+				update_option( $method->get_instance_option_key(), $settings, 'yes' );
 			}
 
 			$this->set_method_state( $instance_id, $method_data );
@@ -520,21 +548,16 @@ class SMFW_Importer {
 	}
 
 	/**
-	 * Normalise the exported "enabled" value.
+	 * Whether the exported method was enabled.
 	 *
-	 * WooCommerce is inconsistent here: depending on how the method object was
-	 * hydrated, `enabled` may be the string 'yes' or a real boolean. Accept
-	 * both rather than trusting one.
+	 * The file may hold 'yes' or a boolean; SMFW_Import_Sanitizer has already
+	 * turned either into a boolean.
 	 *
-	 * @param array $method_data Exported method definition.
+	 * @param array $method_data Sanitised method definition.
 	 * @return bool
 	 */
 	private function is_method_enabled( array $method_data ) {
-		if ( ! isset( $method_data['enabled'] ) ) {
-			return false;
-		}
-
-		return ( 'yes' === $method_data['enabled'] || true === $method_data['enabled'] );
+		return true === $method_data['enabled'];
 	}
 
 	/**
@@ -555,12 +578,11 @@ class SMFW_Importer {
 	 *     old term ID → slug        (from the exported classes array)
 	 *     slug        → new term ID (from this site's classes)
 	 *
-	 * Keys that cannot be resolved are left untouched and flagged in the log.
-	 * Leaving them is the conservative choice: dropping them would silently
-	 * remove a cost rule, whereas an unresolvable key is visible in the admin
-	 * UI and can be corrected by hand.
+	 * Keys that cannot be resolved are left out and flagged in the log. Kept
+	 * as they are, they would point at whatever class has that term ID on
+	 * this site, if any, and charge its products the wrong cost.
 	 *
-	 * @param array $settings         Raw exported method settings.
+	 * @param array $settings         Sanitised method settings from the file.
 	 * @param array $exported_classes The `shipping_classes` array from the file.
 	 * @param array $remap_log        Log lines, appended by reference.
 	 * @return array Settings with remapped keys.
@@ -573,11 +595,6 @@ class SMFW_Importer {
 			if ( ! empty( $class['term_id'] ) && ! empty( $class['slug'] ) ) {
 				$old_id_to_slug[ (int) $class['term_id'] ] = $class['slug'];
 			}
-		}
-
-		// Nothing to map against — return untouched rather than guessing.
-		if ( empty( $old_id_to_slug ) ) {
-			return $settings;
 		}
 
 		$remapped = array();
@@ -610,20 +627,22 @@ class SMFW_Importer {
 
 					$remap_log[] = sprintf(
 						/* translators: 1: settings key, 2: class slug. */
-						esc_html__( '⚠ %1$s (class "%2$s") — no matching class on target site, kept as-is', 'shipping-migrator-for-woocommerce' ),
+						esc_html__( '⚠ %1$s (class "%2$s") — no matching class on target site, skipped', 'shipping-migrator-for-woocommerce' ),
 						esc_html( $key ),
 						esc_html( $slug )
 					);
 				} else {
 					$remap_log[] = sprintf(
 						/* translators: %s: settings key. */
-						esc_html__( '⚠ %s — unknown source class ID, kept as-is', 'shipping-migrator-for-woocommerce' ),
+						esc_html__( '⚠ %s — unknown source class ID, skipped', 'shipping-migrator-for-woocommerce' ),
 						esc_html( $key )
 					);
 				}
+
+				continue;
 			}
 
-			// Everything else (and any unresolved class key) passes through.
+			// Every other setting passes through to validation.
 			$remapped[ $key ] = $value;
 		}
 
@@ -661,6 +680,17 @@ class SMFW_Importer {
 				$this->log[] = sprintf(
 					/* translators: %s: option name. */
 					esc_html__( '⚠ %s — not a recognised shipping option, skipped.', 'shipping-migrator-for-woocommerce' ),
+					esc_html( $key )
+				);
+				continue;
+			}
+
+			$value = SMFW_Import_Sanitizer::sanitize_general_setting( $key, $value );
+
+			if ( null === $value ) {
+				$this->log[] = sprintf(
+					/* translators: %s: option name. */
+					esc_html__( '⚠ %s — not a valid value for this option on this site, skipped.', 'shipping-migrator-for-woocommerce' ),
 					esc_html( $key )
 				);
 				continue;
@@ -705,6 +735,34 @@ class SMFW_Importer {
 
 		$this->log[] = '';
 		$this->log[] = esc_html__( '🧹 WooCommerce shipping transients cleared.', 'shipping-migrator-for-woocommerce' );
+	}
+
+	/**
+	 * Keep the zone locations that exist on this site, logging the others.
+	 *
+	 * @param string $zone_name Zone name, for the log.
+	 * @param array  $locations Sanitised locations from the file.
+	 * @return array Valid locations.
+	 */
+	private function filter_locations( $zone_name, array $locations ) {
+		$valid = array();
+
+		foreach ( $locations as $location ) {
+			if ( SMFW_Import_Sanitizer::is_valid_location( $location ) ) {
+				$valid[] = $location;
+				continue;
+			}
+
+			$this->log[] = sprintf(
+				/* translators: 1: location type, 2: location code, 3: zone name. */
+				esc_html__( '⚠ Location %1$s "%2$s" of zone "%3$s" does not exist on this site — skipped.', 'shipping-migrator-for-woocommerce' ),
+				esc_html( $location['type'] ),
+				esc_html( $location['code'] ),
+				esc_html( $zone_name )
+			);
+		}
+
+		return $valid;
 	}
 
 	/**

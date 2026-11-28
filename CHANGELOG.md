@@ -5,6 +5,23 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] — 2026-11-28
+
+### Changed
+- An import file is sanitised and validated before anything in it is stored.
+  Right after the file is read, only the fields of the export format are kept,
+  each cast to its type, with every string sanitised. Before each write, values
+  are checked against the site: method settings go through the method's own
+  WooCommerce field validation (as when its settings form is saved, including
+  cost formulas and select options), general shipping options must be values
+  WooCommerce allows, zone locations must be countries, states or continents
+  WooCommerce knows, and method types must be registered. Whatever fails is
+  skipped and listed in the import log, the dry run included.
+- A method's settings now include WooCommerce's defaults for the fields the
+  file does not set, as when the method is added by hand.
+- A `class_cost_<id>` key whose shipping class cannot be matched on the target
+  site is skipped. Kept, it would point at whatever class has that ID there.
+
 ## [2.0.0] — 2026-11-24
 
 ### Changed
