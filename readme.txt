@@ -4,7 +4,7 @@ Tags: woocommerce, shipping, shipping zones, export, import
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,10 @@ With "Skip existing zones" on (the default), zones whose name already exists are
 It contains your store's shipping configuration and its address. Treat it like any other configuration backup.
 
 == Changelog ==
+
+= 2.0.1 =
+* Every value in an import file is now sanitised and validated before it is stored: method settings with each method's own WooCommerce field validation, general shipping options against the values WooCommerce allows, and zone locations, method types and shipping classes against what exists on the site. Anything that does not pass is skipped and listed in the import log.
+* A per-class cost whose shipping class cannot be matched on the target site is now skipped instead of kept under its old class ID.
 
 = 2.0.0 =
 * Renamed from "WC Shipping Migrator" to "Shipping Migrator for WooCommerce" for the WordPress.org plugin directory, whose rules keep "WC" out of plugin names. The plugin folder, file and text domain are now shipping-migrator-for-woocommerce. Export files still move between all versions.

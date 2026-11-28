@@ -4,6 +4,12 @@ Updated by every pull request. The next Claude session starts here. This reposit
 
 ## State
 
+- Version 2.0.1 (pull request open): the WordPress.org review's first round asked for every imported value to be
+  sanitised and validated. `includes/class-smfw-import-sanitizer.php` does it in two passes: right after the file is
+  decoded (format fields only, typed, strings sanitised), and before each write against the site (method settings
+  through the method's own WooCommerce field validators, general options against WooCommerce's allowed values, zone
+  locations, method types). Tested on WordPress 7.1 + WooCommerce 11.3 with WP_DEBUG: export, dry run and import of
+  a clean file and of a hand-edited file with invalid and hostile values; Plugin Check finds no errors.
 - Version 2.0.0 (released 2026-11-24): renamed from "WC Shipping Migrator" (slug `wc-shipping-migrator`, prefix `wcsm`) to
   "Shipping Migrator for WooCommerce" (slug and text domain `shipping-migrator-for-woocommerce`, prefix `smfw`), for
   the WordPress.org plugin directory, whose rules keep "WC" out of plugin names and slugs. The export format id stays
@@ -17,11 +23,9 @@ Updated by every pull request. The next Claude session starts here. This reposit
 
 ## Next steps
 
-1. Release 2.0.0 (the owner's): tag `v2.0.0` and a GitHub release with the zip `git archive` makes.
-2. Submission to WordPress.org (the owner's): that zip, uploaded at https://wordpress.org/plugins/developers/add/
-   with the owner's WordPress.org account (`msabolik`, the `Contributors` of `readme.txt`). The review can ask for
-   changes; the slug is confirmed with the approval. After approval, releases go to the directory's SVN: a workflow
-   for that comes once the plugin is approved.
+1. Merge the 2.0.1 pull request, then (the owner's) upload the 2.0.1 zip at "Add your plugin" on WordPress.org and
+   reply to the review email thread, briefly.
+2. After approval, releases go to the directory's SVN: a workflow for that comes once the plugin is approved.
 3. WordPress 7.2 is due on 2026-12-08: the next Compatibility run opens the issue "Compatibility check" for it.
 4. WooCommerce 11.6 will require PHP 8.1 (developer advisory of 2026-09-29). Raising `Requires PHP`, `Requires at
    least` (6.0) or `WC requires at least` (7.0) is the owner's decision.
